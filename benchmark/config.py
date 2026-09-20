@@ -12,7 +12,7 @@ import os
 #    e.g. START_VIDEO_ID = 1, END_VIDEO_ID = 5  ->  Video_ID_1 .. Video_ID_5
 # ---------------------------------------------------------------------------
 START_VIDEO_ID = 1
-END_VIDEO_ID   = 20
+END_VIDEO_ID   = 10
 
 # Video files are expected as  <VIDEO_DIR>/<VIDEO_NAME_TEMPLATE>.<ext>
 # Question files as            <QUESTION_DIR>/<VIDEO_NAME_TEMPLATE>.csv
@@ -53,7 +53,7 @@ RESTORE_DIR = "/workspace/restore"
 # 64 is what the paper uses for LLaVA-Video in every table (Video-MME Table 1,
 # MLVU Table 2, LongVideoBench Table 3) and what evals/*.py use.
 # vidrag_pipeline.py's demo default is 32, which matches no paper result.
-max_frames_num  = 64
+max_frames_num  = 32
 rag_threshold   = 0.3
 clip_threshold  = 0.3
 beta            = 3.0

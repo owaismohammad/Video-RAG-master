@@ -1,0 +1,120 @@
+==============================================================
+ Video-RAG benchmark setup   (Sun Sep 20 15:18:54 UTC 2026)
+ repo: /workspace/Video-RAG-master
+==============================================================
+NVIDIA RTX 6000 Ada Generation, 49140 MiB
+CPU cores: 128
+--- disk ---
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         100G   57G   44G  57% /
+write speed: 536870912 bytes (537 MB, 512 MiB) copied, 0.156303 s, 3.4 GB/s
+  (<200 MB/s = slow host; model load will take minutes. >1 GB/s = NVMe, fine.)
+------------
+
+### [1/7] system packages
+W: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+Updated Git hooks.
+Git LFS initialized.
+
+### [2/7] uv
+uv 0.12.10 (x86_64-unknown-linux-gnu)
+
+### [3/7] uv sync  (torch 2.1.2+cu121, LLaVA-NeXT, Video-RAG deps)
+Resolved 95 packages in 525ms
+Downloading decord (13.0MiB)
+ Downloaded decord
+Prepared 1 package in 296ms
+Uninstalled 2 packages in 9ms
+Installed 1 package in 35ms
+ ~ decord==0.6.0
+ - flash-attn==2.5.8 (from https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.8/flash_attn-2.5.8+cu122torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl)
+Downloading decord (13.0MiB)
+ Downloaded decord
+Uninstalled 1 package in 5ms
+Installed 1 package in 35ms
+
+### [4/7] flash-attn
+Resolved 14 packages in 2.24s
+Downloading flash-attn (115.0MiB)
+ Downloaded flash-attn
+Prepared 1 package in 1.58s
+Installed 1 package in 199ms
+ + flash-attn==2.5.8+cu122torch2.1cxx11abifalse (from https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.8/flash_attn-2.5.8+cu122torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl)
+Downloading decord (13.0MiB)
+ Downloaded decord
+Uninstalled 1 package in 5ms
+Installed 1 package in 36ms
+flash-attn 2.5.8
+  OK -- leave ATTN_IMPLEMENTATION = 'flash_attention_2' in config.py
+
+### [5/7] model weights
+Downloading decord (13.0MiB)
+ Downloaded decord
+Uninstalled 1 package in 5ms
+Installed 1 package in 31ms
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 625.11it/s]
+LVLM  -> /workspace/models/LLaVA-Video-7B-Qwen2
+Fetching 11 files:   0%|          | 0/11 [00:00<?, ?it/s]Fetching 11 files: 100%|██████████| 11/11 [00:00<00:00, 2087.57it/s]
+CLIP  -> /workspace/hf_cache/hub/models--openai--clip-vit-large-patch14-336/snapshots/ce19dc912ca5cd21c8a653c79e251e808ccabcd1
+Fetching 16 files:   0%|          | 0/16 [00:00<?, ?it/s]Fetching 16 files: 100%|██████████| 16/16 [00:00<00:00, 2016.61it/s]
+ASR   -> /workspace/hf_cache/hub/models--openai--whisper-large/snapshots/4ef9b41f0d4fe232daafdb5f76bb1dd8b23e01d7
+Fetching 8 files:   0%|          | 0/8 [00:00<?, ?it/s]Fetching 8 files: 100%|██████████| 8/8 [00:00<00:00, 1838.10it/s]
+RAG   -> /workspace/hf_cache/hub/models--facebook--contriever/snapshots/2bd46a25019aeea091fd42d1f0fd4801675cf699
+
+### [6/7] APE detection service
+Using Python 3.10.21 environment at: .venv-ape
+Checked 2 packages in 95ms
+Using Python 3.10.21 environment at: .venv-ape
+Checked 5 packages in 95ms
+Using Python 3.10.21 environment at: .venv-ape
+   Updating https://github.com/IDEA-Research/detrex (776058e)
+   Updating https://github.com/facebookresearch/detectron2 (017abbf)
+   Updating https://github.com/openai/CLIP.git (d50d76d)
+    Updated https://github.com/facebookresearch/detectron2 (017abbfa5f2c2a2afa045200c2af9ccf2fc6227f)
+    Updated https://github.com/openai/CLIP.git (d50d76daa670286dd6cacf3bcd80b5e4823fc8e1)
+    Updated https://github.com/IDEA-Research/detrex (776058ec229be37a5ff2a2b0bb54133bdd5da663)
+Resolved 99 packages in 15.60s
+Checked 99 packages in 2ms
+Using Python 3.10.21 environment at: .venv-ape
+Resolved 1 package in 2.19s
+   Building ape @ file:///workspace/Video-RAG-master/APE
+      Built ape @ file:///workspace/Video-RAG-master/APE
+Prepared 1 package in 22.60s
+Uninstalled 1 package in 0.50ms
+Installed 1 package in 4ms
+ ~ ape==0.0 (from file:///workspace/Video-RAG-master/APE)
+Using Python 3.10.21 environment at: .venv-ape
+Resolved 13 packages in 289ms
+Downloading decord (13.0MiB)
+ Downloaded decord
+Prepared 1 package in 252ms
+Uninstalled 1 package in 6ms
+Installed 1 package in 34ms
+ ~ decord==0.6.0
+  /checkpoints -> /workspace/checkpoints
+Downloading decord (13.0MiB)
+ Downloaded decord
+Uninstalled 1 package in 4ms
+Installed 1 package in 38ms
+downloading configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k_mdl_20230829_162438/model_final.pth
+APE ckpt -> /checkpoints/model_final.pth
+
+### [7/7] scratch dirs
+
+==============================================================
+ Setup finished. Next:
+
+   1. Upload videos    -> /workspace/dataset/videos     (Video_ID_1.mp4 ...)
+      Upload questions -> /workspace/dataset/questions  (Video_ID_1.csv ...)
+
+   2. Check the dataset wiring (no GPU, ~1 second):
+        uv run python benchmark/test_dataset.py
+
+   3. Smoke test ONE video first -- set END_VIDEO_ID = 1 in
+      benchmark/config.py, then run step 4/5 and inspect the output.
+
+   4. If USE_DET = True, shell 1:   bash run_ape_service.sh
+   5. Shell 2:                      bash run_benchmark.sh
+
+ Results -> /workspace/Benchmarking_VideoRAG-Master
+==============================================================

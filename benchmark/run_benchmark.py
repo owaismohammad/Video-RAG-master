@@ -474,8 +474,8 @@ def answer_question(question_text, ctx, video_name):
             clip_inputs = clip_processor(
                 text=clip_text, return_tensors="pt", padding=True, truncation=True
             ).to(clip_model.device)
-            clip_img_feats = clip_model.get_image_features(video_tensor)
             with torch.no_grad():
+                clip_img_feats = clip_model.get_image_features(video_tensor)
                 text_features = clip_model.get_text_features(**clip_inputs)
                 similarities = (clip_img_feats @ text_features.T).squeeze(0).mean(1).cpu()
                 similarities = np.array(similarities, dtype=np.float64)
@@ -676,7 +676,8 @@ def main():
             m["question"] = q["question"]
             m["ground_truth"] = q["ground_truth"]
             m["response"] = res
-            m["error"] = err.replace("\n", " ")[:1000] if err else ""
+            # keep the TAIL: the exception type/message is the last line of a traceback
+            m["error"] = err.replace("\n", " ")[-1000:] if err else ""
             rows.append(m)
             all_rows.append(m)
 

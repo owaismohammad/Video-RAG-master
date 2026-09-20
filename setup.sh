@@ -68,6 +68,10 @@ if ! command -v uv >/dev/null 2>&1; then
     curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+# Vast/RunPod images ship with a venv (e.g. /venv/main, py3.12) already active.
+# `uv pip install` follows VIRTUAL_ENV, so without this the wheels below would
+# land in that env instead of the project's .venv (py3.10).
+unset VIRTUAL_ENV
 uv --version
 
 # --- 3. main environment ---------------------------------------------------
@@ -85,7 +89,7 @@ uv run python -c "import spacy; spacy.load('en_core_web_sm')" \
 echo ""
 echo "### [4/7] flash-attn"
 FA_WHL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.8/flash_attn-2.5.8+cu122torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
-if uv pip install "$FA_WHL"; then
+if uv pip install --python "$REPO_ROOT/.venv/bin/python" "$FA_WHL"; then
     uv run python -c "import flash_attn; print('flash-attn', flash_attn.__version__)" \
         && echo "  OK -- leave ATTN_IMPLEMENTATION = 'flash_attention_2' in config.py"
 else
@@ -122,14 +126,32 @@ echo "### [6/7] APE detection service"
 if [ "$INSTALL_APE" = "1" ]; then
     [ -d "APE" ] || git clone https://github.com/shenyunhang/APE.git
 
-    uv venv .venv-ape --python 3.10
+    [ -x .venv-ape/bin/python ] || uv venv .venv-ape --python 3.10
     export VIRTUAL_ENV="$REPO_ROOT/.venv-ape"
     uv pip install torch==2.1.2 torchvision==0.16.2 \
         --index-url https://download.pytorch.org/whl/cu121
-    uv pip install -r APE/requirements.txt || echo "  (some APE reqs failed, continuing)"
-    uv pip install "git+https://github.com/facebookresearch/detectron2.git" || \
-        echo "  !! detectron2 build failed -- APE will not start"
-    uv pip install -e ./APE
+
+    # detectron2 / detrex / CLIP / APE compile against the torch installed
+    # above, so they must build WITHOUT uv's isolated build env (which has no
+    # torch -> "No module named 'torch'"). That needs setuptools + wheel +
+    # ninja + cython present in the venv. setuptools is pinned <70 because
+    # torch 2.1.2 imports pkg_resources, which newer setuptools removed.
+    export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
+    export FORCE_CUDA=1 MAX_JOBS="$(nproc --all)"
+    # Compile for this box's GPU only (default builds every arch: much slower).
+    export TORCH_CUDA_ARCH_LIST="$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -1)"
+    uv pip install "setuptools==69.5.1" wheel ninja cython "numpy<2"
+
+    # APE/requirements.txt pins torch==1.12.1, which would downgrade the
+    # torch 2.1.2+cu121 installed above (and break the CUDA 12 build). Drop
+    # torch/torchvision from it; everything else (incl. the pinned
+    # detectron2 + detrex + CLIP commits) is kept.
+    grep -v -E '^(torch|torchvision)(==|$)' APE/requirements.txt > .ape-requirements.txt
+    uv pip install --no-build-isolation -r .ape-requirements.txt || \
+        echo "  !! APE requirements failed (detectron2/detrex build?) -- APE will not start"
+    rm -f .ape-requirements.txt
+
+    uv pip install --no-build-isolation -e ./APE
     uv pip install decord xformers==0.0.23.post1 || true
     unset VIRTUAL_ENV
 
