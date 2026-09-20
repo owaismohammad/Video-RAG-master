@@ -133,6 +133,16 @@ tokenizer, model, image_processor, max_length = load_pretrained_model(
     overwrite_config=overwrite_config,
 )
 model.eval()
+
+# This transformers version computes logits for EVERY prompt position at prefill
+# (then .float() copies them). With a ~11k-token video prompt and a 152k vocab
+# that is ~3 GB (bf16) + ~6.6 GB (fp32) just to discard all but the last row, and
+# it OOMs next to APE on a single GPU. Greedy decoding only ever reads
+# logits[:, -1, :], so compute the head on the last position only -- identical
+# outputs, ~10 GB less peak memory.
+_orig_lm_head_forward = model.lm_head.forward
+model.lm_head.forward = lambda hidden_states: _orig_lm_head_forward(hidden_states[:, -1:, :])
+
 conv_template = config.CONV_TEMPLATE
 
 max_frames_num = config.max_frames_num

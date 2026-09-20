@@ -1,5 +1,6 @@
 import socket
 import pickle
+import torch
 from ape_api import setup_cfg, ape_inference, VisualizationDemo
 
 def main():
@@ -27,7 +28,10 @@ def main():
         
         # Run inference
         result = ape_inference(input_files, text_prompt, demo)
-        
+        # Hand cached activations back to the driver: on a shared GPU this
+        # process otherwise balloons (3.5 GB idle -> 17 GB) and starves LLaVA.
+        torch.cuda.empty_cache()
+
         # Send back result
         client_socket.send(pickle.dumps(result))
         client_socket.close()
