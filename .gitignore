@@ -1,0 +1,7 @@
+.venv/
+.venv-ape/
+__pycache__/
+*.pyc
+APE/
+restore/
+Benchmarking_VideoRAG-Master/

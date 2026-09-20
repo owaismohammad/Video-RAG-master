@@ -1,0 +1,71 @@
+[project]
+name = "video-rag-benchmark"
+version = "0.1.0"
+description = "Video-RAG (LLaVA-Video-7B-Qwen2) benchmark harness over a custom video/question dataset"
+requires-python = "==3.10.*"
+
+# NOTE: LLaVA-NeXT's own pyproject.toml declares NO base dependencies -- every
+# runtime package lives in its `train` extra alongside deepspeed/bitsandbytes,
+# which we do not want for inference. So we install `llava` for the package
+# itself and supply its actual import-time requirements here explicitly.
+dependencies = [
+    # --- core torch stack (versions the Video-RAG readme calls for) ---
+    "torch==2.1.2",
+    "torchvision==0.16.2",
+    "torchaudio==2.1.2",
+
+    # --- LLaVA-NeXT (the LVLM this pipeline is built on) ---
+    "llava @ git+https://github.com/LLaVA-VL/LLaVA-NeXT@main",
+
+    # --- what llava actually imports at inference time ---
+    # Exact transformers commit + tokenizers range LLaVA-NeXT's own `train`
+    # extra pins (that commit is 4.40.0.dev0, tokenizers>=0.14,<0.19). We match
+    # it rather than the PyPI 4.40.0 release, which is a different snapshot.
+    "transformers @ git+https://github.com/huggingface/transformers.git@1c39974a4c4036fd641bc1191cc32799f85715a4",
+    "tokenizers~=0.15.2",
+    "accelerate>=0.29.1",
+    "sentencepiece",
+    "protobuf",
+    "einops",
+    "einops-exts",
+    "timm",
+    "open_clip_torch",
+    "shortuuid",
+    "ftfy",
+    "opencv-python-headless",
+    "av",
+    "scipy",
+
+    # --- Video-RAG pipeline deps ---
+    "numpy<2",
+    "decord==0.6.0",
+    "easyocr",
+    "faiss-cpu",
+    "ffmpeg-python",
+    "spacy>=3.7,<3.8",
+    # spacy 3.7 imports `click` directly, but current typer releases no longer
+    # depend on it, so without this `import spacy` fails (found by installing
+    # the lockfile and importing everything the runner imports).
+    "click>=8.1,<9",
+    "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl",
+    "networkx",
+    "tqdm",
+    "pillow",
+    "huggingface-hub[cli]",
+]
+
+[tool.uv]
+# flash-attn has no build isolation and no PyPI wheels; setup.sh installs a
+# prebuilt wheel for torch 2.1 / cp310 instead of building from source.
+no-build-isolation-package = ["flash-attn"]
+override-dependencies = ["numpy<2"]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }
+torchaudio = { index = "pytorch-cu121" }
